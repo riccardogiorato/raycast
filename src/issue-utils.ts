@@ -66,7 +66,7 @@ export function getStatusIcon(status: IssueStatus) {
     case "closed":
       return { source: "git-pr-closed.png" };
     case "merged":
-      return { source: "git-pr-merged.png" };
+      return { source: "git-merged.png" };
     case "failed":
       return { source: "failed.png" };
     default:

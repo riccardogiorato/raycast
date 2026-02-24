@@ -79,7 +79,7 @@ export default function MenubarTasks() {
   return (
     <MenuBarExtra
       title={getIssueCount()}
-      icon={{ source: "tembo-white-mark.png" }}
+      icon={{ source: { light: "tembo-dark-mark.png", dark: "tembo-white-mark.png" } }}
       tooltip={`${activeIssues.length} active issues`}
     >
       <MenuBarExtra.Section title="Active Issues">
