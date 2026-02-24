@@ -68,6 +68,14 @@ export default function Command() {
       popToRoot();
     } catch (error) {
       console.error("Failed to create task:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const maybeCause = error instanceof Error && "cause" in error ? (error.cause as { code?: string } | undefined) : undefined;
+      const isNetworkError =
+        errorMessage.toLowerCase().includes("fetch failed") ||
+        errorMessage.toLowerCase().includes("enotfound") ||
+        errorMessage.toLowerCase().includes("eai_again") ||
+        maybeCause?.code === "ENOTFOUND" ||
+        maybeCause?.code === "EAI_AGAIN";
 
       if (error instanceof Error && error.message.includes("401")) {
         showToast({
@@ -75,11 +83,27 @@ export default function Command() {
           title: "Authentication Failed",
           message: "Please check your API key in the extension preferences",
         });
+      } else if (isNetworkError) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "You're offline",
+          message: "Tembo can't be reached right now. Check your internet connection and try again.",
+        });
+      } else if (errorMessage.toLowerCase().includes("insufficient credits")) {
+        showToast({
+          style: Toast.Style.Failure,
+          title: "You are out of credits",
+          message: "Add more credits in order to keep Tembo running.",
+          primaryAction: {
+            title: "Buy Credits",
+            onAction: () => open(`${TEMBO_UI_BASE}/settings/billing/`),
+          },
+        });
       } else {
         showToast({
           style: Toast.Style.Failure,
           title: "Failed to create task",
-          message: error instanceof Error ? error.message : "Unknown error",
+          message: errorMessage,
         });
       }
     }
