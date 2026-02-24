@@ -1,7 +1,7 @@
 import { environment, Icon } from "@raycast/api";
 import type { Issue } from "./api";
 
-export type IssueStatus = "queued" | "open" | "closed" | "merged" | "failed";
+export type IssueStatus = "queued" | "open" | "closed" | "merged" | "completed" | "failed";
 export type IntegrationType =
   | "github"
   | "postgres"
@@ -21,7 +21,7 @@ export function getIssueStatus(issue: Issue): IssueStatus {
         const prStatus = latestSolution.pullRequest[0].status;
         return prStatus === "merged" ? "merged" : prStatus === "closed" ? "closed" : "open";
       } else {
-        return "open";
+        return "completed";
       }
     } else if (latestSolution.status === "Failed") {
       return "failed";
@@ -57,7 +57,17 @@ export function getIssueSolutionsCount(issue: Issue): number {
   return issue.solutions?.length || 0;
 }
 
-export function getStatusIcon(status: IssueStatus) {
+export function hasLatestSolutionPullRequest(issue: Issue): boolean {
+  if (!issue.solutions || issue.solutions.length === 0) return false;
+  const latestSolution = issue.solutions[issue.solutions.length - 1];
+  return latestSolution.pullRequest.length > 0;
+}
+
+export function getStatusIcon(status: IssueStatus, hasPullRequest: boolean) {
+  if (!hasPullRequest && (status === "open" || status === "closed" || status === "merged")) {
+    return status === "open" ? Icon.Clock : Icon.Checkmark;
+  }
+
   switch (status) {
     case "queued":
       return { source: "git-queued.png" };
@@ -67,6 +77,8 @@ export function getStatusIcon(status: IssueStatus) {
       return { source: "git-pr-closed.png" };
     case "merged":
       return { source: "git-merged.png" };
+    case "completed":
+      return Icon.Checkmark;
     case "failed":
       return { source: "failed.png" };
     default:

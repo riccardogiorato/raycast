@@ -8,6 +8,7 @@ import {
   getIssueSolutionsCount,
   getStatusIcon,
   getIntegrationIcon,
+  hasLatestSolutionPullRequest,
 } from "./issue-utils";
 
 type FilterType = "all" | "active" | "recently-done" | "queued" | "open" | "closed" | "merged" | "failed";
@@ -74,14 +75,17 @@ export default function ViewTasks() {
       case "recently-done":
         return issues.filter((issue) => {
           const status = getIssueStatus(issue);
-          return (status === "closed" || status === "merged") && new Date(issue.createdAt) > oneWeekAgo;
+          return (status === "closed" || status === "merged" || status === "completed") && new Date(issue.createdAt) > oneWeekAgo;
         });
       case "queued":
         return issues.filter((issue) => getIssueStatus(issue) === "queued");
       case "open":
         return issues.filter((issue) => getIssueStatus(issue) === "open");
       case "closed":
-        return issues.filter((issue) => getIssueStatus(issue) === "closed");
+        return issues.filter((issue) => {
+          const status = getIssueStatus(issue);
+          return status === "closed" || status === "completed";
+        });
       case "merged":
         return issues.filter((issue) => getIssueStatus(issue) === "merged");
       case "failed":
@@ -155,7 +159,7 @@ export default function ViewTasks() {
           const integrationType = getIssueIntegrationType(issue);
           const repo = getIssueRepo(issue);
           const solutionsCount = getIssueSolutionsCount(issue);
-          const statusIcon = getStatusIcon(status);
+          const statusIcon = getStatusIcon(status, hasLatestSolutionPullRequest(issue));
 
           return (
             <List.Item
